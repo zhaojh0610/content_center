@@ -2,6 +2,9 @@ package com.zjh.contentcenter;
 
 import com.zjh.contentcenter.dao.content.ShareMapper;
 import com.zjh.contentcenter.domain.entity.content.Share;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -20,6 +23,9 @@ public class TestController {
     @Resource
     private ShareMapper shareMapper;
 
+    @Autowired
+    private DiscoveryClient discoveryClient;
+
     @GetMapping("/test")
     public List<Share> testInset(){
         Share share = new Share();
@@ -36,5 +42,10 @@ public class TestController {
         return list;
     }
 
+    @GetMapping("/test2")
+    public List<ServiceInstance> getInstances(){
+        List<ServiceInstance> instances = discoveryClient.getInstances("user-center");
+        return instances;
+    }
 
 }
