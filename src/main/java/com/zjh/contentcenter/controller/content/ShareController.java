@@ -2,12 +2,13 @@ package com.zjh.contentcenter.controller.content;
 
 import com.zjh.contentcenter.domain.dto.content.ShareDTO;
 import com.zjh.contentcenter.service.content.ShareService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.annotation.Resource;
 
 /**
  * @ClassName ShareController
@@ -18,15 +19,14 @@ import javax.annotation.Resource;
  **/
 @RestController
 @RequestMapping("/shares")
+@Slf4j
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class ShareController {
-
-    @Resource
-    private ShareService shareService;
+    private final ShareService shareService;
 
     @GetMapping("/{id}")
     public ShareDTO findById(@PathVariable Integer id){
-        ShareDTO shardto = this.shareService.findById(id);
-        return shardto;
+        return this.shareService.findById(id);
     }
 
 }
