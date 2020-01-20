@@ -19,9 +19,16 @@ spring:
         cluster-name: BJ
         namespace: 87980947-d66c-4ee5-a8b0-3b17222c464d
         metadata:
-          devlocalVersion: dev
-          prodVersion: prod
           version: 1.0
+    sentinel:
+      filter:
+        #打开/关闭掉对spring MVC端点的保护
+        enabled: true
+      transport:
+#        指定sentinel 控制台的地址
+        dashboard: localhost:8080
+  main:
+    allow-bean-definition-overriding: true
 server:
   port: 8010
 #user-center:
@@ -29,5 +36,37 @@ server:
 #    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule
 ribbon:
   eager-load:
+    enabled: true 
+#    clients: user-center
+logging:
+  level:
+    com.zjh.contentcenter.fegnClient.UserCenterFeignClient: info
+feign:
+  sentinel:
+    #为feign整合sentinel
     enabled: true
-    clients: user-center
+  client:
+    config:
+      #全局配置Feign日志级别 full=bebug 、basic = ?
+      default:
+        loggerLevel: full
+  httpclient:
+    # 让Feign使用Apache httpclient做请求；而不是默认的urlconnection
+    enabled: true
+    #Feign的最大连接数
+    max-connections: 200
+    #Feign的单个路径的最大连接数
+    max-connections-per-route: 50
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+resttemplate:
+  sentinel:
+    enabled: false
+rocketmq:
+  name-server: 127.0.0.1:9876
+  producer:
+#    小坑：必须指定group
+    group: test-group

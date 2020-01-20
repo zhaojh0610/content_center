@@ -2,6 +2,7 @@ package com.zjh.contentcenter;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.alibaba.sentinel.annotation.SentinelRestTemplate;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,7 @@ import tk.mybatis.spring.annotation.MapperScan;
  */
 @MapperScan("com.zjh")
 @SpringBootApplication
+//@EnableFeignClients(defaultConfiguration = GlobalFeignConfiguration.class)
 @EnableFeignClients
 public class ContentCenterApplication {
 
@@ -26,6 +28,7 @@ public class ContentCenterApplication {
     // <bean id = "restTemplate" class = "xxx.RestTemplate" />
     @Bean
     @LoadBalanced
+    @SentinelRestTemplate
     public RestTemplate restTemplate(){
         return new RestTemplate();
     }

@@ -1,6 +1,7 @@
 package com.zjh.contentcenter.fegnClient;
 
 import com.zjh.contentcenter.domain.dto.user.UserDTO;
+import com.zjh.contentcenter.fegnClient.fallbackfactory.UserCenterFeignClientFallbackFactory;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,7 +13,11 @@ import org.springframework.web.bind.annotation.PathVariable;
  * @Version 1.0
  * @Description
  **/
-@FeignClient(name = "user-center")
+//@FeignClient(name = "user-center",configuration = UserCenterFeignConfiguration.class)
+@FeignClient(name = "user-center",
+//        fallback = UserCenterFeignClientFallback.class,
+        fallbackFactory = UserCenterFeignClientFallbackFactory.class
+)
 public interface UserCenterFeignClient {
 
     @GetMapping("/users/{id}")

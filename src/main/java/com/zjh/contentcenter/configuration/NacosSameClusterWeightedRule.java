@@ -59,12 +59,12 @@ public class NacosSameClusterWeightedRule extends AbstractLoadBalancerRule {
             List<Instance> sameClusterInstances2 = sameClusterInstances.stream().filter(instance -> {
                 return Objects.equals(version, instance.getMetadata().get("version"));
             }).collect(Collectors.toList());
-            log.info("筛选出相同集群下相同版本号的实例 = {}", sameClusterInstances);
+            log.info("筛选出相同集群下相同版本号的实例 = {}", sameClusterInstances2);
             //筛选出不同集群下的相同版本号的实例
             List<Instance> instances2 = instances.stream().filter(instance -> {
                 return Objects.equals(version, instance.getMetadata().get("version"));
             }).collect(Collectors.toList());
-            log.info("筛选出不是同一个集群下相同版本号的实例={}",instances2);
+            log.info("筛选出该服务实例下的所有相同版本号的实例={}",instances2);
             //step3.如果B为空，就用A
             List<Instance> instanceToBeChose;
             if (CollectionUtils.isEmpty(sameClusterInstances)) {
