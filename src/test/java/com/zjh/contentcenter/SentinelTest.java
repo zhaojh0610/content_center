@@ -22,7 +22,7 @@ public class SentinelTest {
         RestTemplate restTemplate = new RestTemplate();
         for (int i = 0; i < 100; i++) {
             String object = restTemplate.getForObject("http://localhost:8010/test-a", String.class);
-            System.out.println("--------------"+object+"-------------");
+            System.out.println("--------------" + object + "-------------");
         }
     }
 }

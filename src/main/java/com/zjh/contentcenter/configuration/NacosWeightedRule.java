@@ -49,7 +49,7 @@ public class NacosWeightedRule extends AbstractLoadBalancerRule {
             NamingService namingService = nacosDiscoveryProperties.namingServiceInstance();
             //nacos client 自动通过基于权重的负载均衡算法，给我们选择一个实例
             Instance instance = namingService.selectOneHealthyInstance(name);
-            log.info("port = {},instance = {}",instance.getPort(),instance);
+            log.info("port = {},instance = {}", instance.getPort(), instance);
             return new NacosServer(instance);
         } catch (NacosException e) {
             return null;

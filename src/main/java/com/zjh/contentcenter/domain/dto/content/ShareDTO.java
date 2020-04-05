@@ -1,7 +1,5 @@
 package com.zjh.contentcenter.domain.dto.content;
 
-import javax.persistence.Column;
-import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import java.util.Date;
 
@@ -93,6 +91,7 @@ public class ShareDTO {
      * 微信昵称
      */
     private String wxNickname;
+
     /**
      * 获取id
      *

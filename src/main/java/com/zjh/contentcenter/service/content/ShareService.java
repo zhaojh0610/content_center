@@ -1,12 +1,17 @@
 package com.zjh.contentcenter.service.content;
 
 import com.alibaba.fastjson.JSON;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
+import com.zjh.contentcenter.dao.content.MidUserShareMapper;
 import com.zjh.contentcenter.dao.content.RocketmqTransactionLogMapper;
 import com.zjh.contentcenter.dao.content.ShareMapper;
 import com.zjh.contentcenter.domain.dto.content.ShareAuditDTO;
 import com.zjh.contentcenter.domain.dto.content.ShareDTO;
 import com.zjh.contentcenter.domain.dto.messaging.UserAddBonusMsaDTO;
+import com.zjh.contentcenter.domain.dto.user.UserAndBonusDTO;
 import com.zjh.contentcenter.domain.dto.user.UserDTO;
+import com.zjh.contentcenter.domain.entity.content.MidUserShare;
 import com.zjh.contentcenter.domain.entity.content.RocketmqTransactionLog;
 import com.zjh.contentcenter.domain.entity.content.Share;
 import com.zjh.contentcenter.domain.enums.AuditStatusEnum;
@@ -24,6 +29,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -42,6 +50,7 @@ public class ShareService {
     private final UserCenterFeignClient userCenterFeignClient;
     private final RocketmqTransactionLogMapper rocketmqTransactionLogMapper;
     private final Source source;
+    private final MidUserShareMapper midUserShareMapper;
 
     public ShareDTO findById(Integer id) {
         //获取分享详情
@@ -72,6 +81,9 @@ public class ShareService {
         if (share == null) {
             throw new IllegalArgumentException("参数非法，该分享不存在！");
         }
+        if (!Objects.equals("NOT_YET", share.getAuditStatus())) {
+            throw new IllegalArgumentException("参数非法！该分享已审核通过或审核不通过！");
+        }
         //step2 如果是PASS，那么发送消息给rocketmq，让用户中心去消费，并为发布人添加积分
         if (AuditStatusEnum.PASS.equals(shareAuditDTO.getAuditStatusEnum())) {
             String transactionId = UUID.randomUUID().toString();
@@ -83,7 +95,7 @@ public class ShareService {
                     .setHeader("share_id", id)
                     .setHeader("dto", JSON.toJSONString(shareAuditDTO))
                     .build());
-        }else {
+        } else {
             this.auditByIdInDB(id, shareAuditDTO);
         }
         return share;
@@ -91,6 +103,7 @@ public class ShareService {
 
     /**
      * 修改本地数据
+     *
      * @param id
      * @param shareAuditDTO
      */
@@ -106,17 +119,61 @@ public class ShareService {
 
     /**
      * 修改数据并记录本地事务
+     *
      * @param id
      * @param shareAuditDTO
      * @param transactionId
      */
     @Transactional(rollbackFor = Exception.class)
-    public void auditByIdWithRocketMqLog(Integer id, ShareAuditDTO shareAuditDTO,String transactionId) {
-        this.auditByIdInDB(id,shareAuditDTO);
+    public void auditByIdWithRocketMqLog(Integer id, ShareAuditDTO shareAuditDTO, String transactionId) {
+        this.auditByIdInDB(id, shareAuditDTO);
         this.rocketmqTransactionLogMapper.insert(RocketmqTransactionLog
                 .builder()
                 .transactionId(transactionId)
                 .log("审核分享...")
                 .build());
+    }
+
+    public PageInfo<Share> q(String title, Integer pageNo, Integer pageSize) {
+        //它会切入下面这条不分页的SQL，这里利用的是mybatis拦截器机制自动的给下面的SQL添加上分页语句
+        PageHelper.startPage(pageNo, pageSize);
+        //不分页的SQL
+        List<Share> shares = this.shareMapper.selectByParam(title);
+        return new PageInfo<Share>(shares);
+    }
+
+    public Share exchangeById(Integer id, HttpServletRequest request) {
+        Object userId = request.getAttribute("id");
+        Integer integerUserId = Integer.valueOf((String) userId);
+        //1.根据ID查询share
+        Share share = this.shareMapper.selectByPrimaryKey(id);
+        if (share == null) {
+            throw new IllegalArgumentException("该分享不存在");
+        }
+        MidUserShare midUserShare = this.midUserShareMapper.selectOne(
+                MidUserShare.builder()
+                        .userId(integerUserId)
+                        .shareId(id)
+                        .build());
+        if (midUserShare != null) {
+            return share;
+        }
+        //2.根据当前登录的用户ID，查询积分是否够
+        UserDTO userDTO = this.userCenterFeignClient.findById(integerUserId);
+        Integer price = share.getPrice();
+        if (price > userDTO.getBonus()) {
+            throw new IllegalArgumentException("用户积分不够用！");
+        }
+        //3.扣减积分，往mid_user_share表里插入一条数据
+        this.userCenterFeignClient.addBonus(UserAndBonusDTO.builder()
+                .userId(integerUserId)
+                .bonus(-price)
+                .build());
+        this.midUserShareMapper.insert(
+                MidUserShare.builder()
+                        .userId(integerUserId)
+                        .shareId(id)
+                        .build());
+        return share;
     }
 }

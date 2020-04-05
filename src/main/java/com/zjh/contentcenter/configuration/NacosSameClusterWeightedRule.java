@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.alibaba.nacos.NacosDiscoveryProperties;
 import org.springframework.cloud.alibaba.nacos.ribbon.NacosServer;
 import org.springframework.util.CollectionUtils;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -64,7 +65,7 @@ public class NacosSameClusterWeightedRule extends AbstractLoadBalancerRule {
             List<Instance> instances2 = instances.stream().filter(instance -> {
                 return Objects.equals(version, instance.getMetadata().get("version"));
             }).collect(Collectors.toList());
-            log.info("筛选出该服务实例下的所有相同版本号的实例={}",instances2);
+            log.info("筛选出该服务实例下的所有相同版本号的实例={}", instances2);
             //step3.如果B为空，就用A
             List<Instance> instanceToBeChose;
             if (CollectionUtils.isEmpty(sameClusterInstances)) {

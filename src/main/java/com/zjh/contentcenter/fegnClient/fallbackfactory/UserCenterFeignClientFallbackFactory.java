@@ -1,5 +1,6 @@
 package com.zjh.contentcenter.fegnClient.fallbackfactory;
 
+import com.zjh.contentcenter.domain.dto.user.UserAndBonusDTO;
 import com.zjh.contentcenter.domain.dto.user.UserDTO;
 import com.zjh.contentcenter.fegnClient.UserCenterFeignClient;
 import feign.hystrix.FallbackFactory;
@@ -21,10 +22,16 @@ public class UserCenterFeignClientFallbackFactory implements FallbackFactory<Use
         return new UserCenterFeignClient() {
             @Override
             public UserDTO findById(Integer id) {
-                log.warn("远程调用被限流/降级了",throwable);
+                log.warn("远程调用被限流/降级了", throwable);
                 UserDTO userDTO = new UserDTO();
                 userDTO.setWxNickname("一个默认用户");
                 return userDTO;
+            }
+
+            @Override
+            public UserDTO addBonus(UserAndBonusDTO userAndBonusDTO) {
+                log.warn("远程调用被限流/降级了", throwable);
+                return null;
             }
         };
 

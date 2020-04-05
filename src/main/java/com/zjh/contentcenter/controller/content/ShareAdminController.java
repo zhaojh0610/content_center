@@ -1,5 +1,6 @@
 package com.zjh.contentcenter.controller.content;
 
+import com.zjh.contentcenter.auth.CheckAuthorization;
 import com.zjh.contentcenter.domain.dto.content.ShareAuditDTO;
 import com.zjh.contentcenter.domain.entity.content.Share;
 import com.zjh.contentcenter.service.content.ShareService;
@@ -21,8 +22,9 @@ public class ShareAdminController {
     private final ShareService shareService;
 
     @PutMapping("/audit/{id}")
+    @CheckAuthorization("admin")
     public Share auditById(@PathVariable Integer id, @RequestBody ShareAuditDTO shareAuditDTO) {
-        Share share = this.shareService.auditById(id, shareAuditDTO);
-        return share;
+        // TODO 认证、授权
+        return this.shareService.auditById(id, shareAuditDTO);
     }
 }

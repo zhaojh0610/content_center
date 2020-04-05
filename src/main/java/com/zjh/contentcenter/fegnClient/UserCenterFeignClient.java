@@ -1,10 +1,10 @@
 package com.zjh.contentcenter.fegnClient;
 
+import com.zjh.contentcenter.domain.dto.user.UserAndBonusDTO;
 import com.zjh.contentcenter.domain.dto.user.UserDTO;
 import com.zjh.contentcenter.fegnClient.fallbackfactory.UserCenterFeignClientFallbackFactory;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * @InterfaceName UserCenterFeignClient
@@ -22,4 +22,7 @@ public interface UserCenterFeignClient {
 
     @GetMapping("/users/{id}")
     UserDTO findById(@PathVariable Integer id);
+
+    @PutMapping("/users/add-bonus/{id}")
+    UserDTO addBonus(@RequestBody UserAndBonusDTO userAndBonusDTO);
 }

@@ -1,5 +1,6 @@
 package com.zjh.contentcenter.fegnClient.fallback;
 
+import com.zjh.contentcenter.domain.dto.user.UserAndBonusDTO;
 import com.zjh.contentcenter.domain.dto.user.UserDTO;
 import com.zjh.contentcenter.fegnClient.UserCenterFeignClient;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,11 @@ public class UserCenterFeignClientFallback implements UserCenterFeignClient {
         UserDTO userDTO = new UserDTO();
         userDTO.setWxNickname("一个默认用户");
         return userDTO;
+    }
+
+    @Override
+    public UserDTO addBonus(UserAndBonusDTO userAndBonusDTO) {
+        return null;
     }
 }
 

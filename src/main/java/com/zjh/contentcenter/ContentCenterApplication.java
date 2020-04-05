@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.web.client.RestTemplate;
 import tk.mybatis.spring.annotation.MapperScan;
 
+import java.util.Collections;
+
 /**
  * @author zhaojh
  * @date 2019年10月10日15:40:20
@@ -32,8 +34,13 @@ public class ContentCenterApplication {
     @Bean
     @LoadBalanced
     @SentinelRestTemplate
-    public RestTemplate restTemplate(){
-        return new RestTemplate();
+    public RestTemplate restTemplate() {
+        RestTemplate template = new RestTemplate();
+        template.setInterceptors(
+                Collections.singletonList(
+                        new TestRestTemplateTokenRelayInterceptor()
+                ));
+        return template;
     }
 
 }
