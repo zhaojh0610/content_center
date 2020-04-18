@@ -26,7 +26,7 @@ public class TokenRelayRequestInterceptor implements RequestInterceptor {
         //2.将token传递
         //表示将某一个值设置到header上去
         if (StringUtils.isNotBlank(token)) {
-            template.header("X-Token",token);
+            template.header("X-Token", token);
         }
     }
 }

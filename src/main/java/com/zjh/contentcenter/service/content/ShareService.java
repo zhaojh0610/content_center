@@ -18,7 +18,6 @@ import com.zjh.contentcenter.domain.enums.AuditStatusEnum;
 import com.zjh.contentcenter.fegnClient.UserCenterFeignClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.apache.rocketmq.spring.support.RocketMQHeaders;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +32,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName ShareService
@@ -46,7 +46,6 @@ import java.util.UUID;
 @Slf4j
 public class ShareService {
     private final ShareMapper shareMapper;
-    private final RocketMQTemplate rocketMQTemplate;
     private final UserCenterFeignClient userCenterFeignClient;
     private final RocketmqTransactionLogMapper rocketmqTransactionLogMapper;
     private final Source source;
@@ -57,9 +56,11 @@ public class ShareService {
         Share share = this.shareMapper.selectByPrimaryKey(id);
         //获取发布人ID
         Integer userId = share.getUserId();
-        //怎么调用微服务的users/{id}
-//        UserDTO userDTO = this.restTemplate.getForObject("http://user-center/users/{userId}", UserDTO.class, userId);
-        //使用feign实现负载均衡
+        /*
+        怎么调用微服务的users/{id}
+        UserDTO userDTO = this.restTemplate.getForObject("http://user-center/users/{userId}", UserDTO.class, userId);
+        使用feign实现负载均衡
+        */
         UserDTO userDTO = this.userCenterFeignClient.findById(userId);
         ShareDTO shareDTO = new ShareDTO();
         BeanUtils.copyProperties(share, shareDTO);
@@ -107,7 +108,7 @@ public class ShareService {
      * @param id
      * @param shareAuditDTO
      */
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional(rollbackFor = RuntimeException.class)
     public void auditByIdInDB(Integer id, ShareAuditDTO shareAuditDTO) {
         Share share = Share.builder()
                 .id(id)
@@ -134,17 +135,37 @@ public class ShareService {
                 .build());
     }
 
-    public PageInfo<Share> q(String title, Integer pageNo, Integer pageSize) {
+    public PageInfo<Share> q(String title, Integer pageNo, Integer pageSize, Integer userId) {
         //它会切入下面这条不分页的SQL，这里利用的是mybatis拦截器机制自动的给下面的SQL添加上分页语句
         PageHelper.startPage(pageNo, pageSize);
         //不分页的SQL
         List<Share> shares = this.shareMapper.selectByParam(title);
-        return new PageInfo<Share>(shares);
+        List<Share> sharesDeal;
+        if (userId == null) {
+            sharesDeal = shares.stream()
+                    .peek(share -> share.setDownloadUrl(null))
+                    .collect(Collectors.toList());
+        }
+        //1.如果用户未登录，那么downloadUrl全部设为null
+        //2.如果用户登录了，那么查询一下mid_user_share,如果没有数据，那么这条share的downloadUrl设为null
+        else {
+            sharesDeal = shares.stream().peek(share -> {
+                MidUserShare midUserShare = this.midUserShareMapper.selectOne(MidUserShare.builder()
+                        .shareId(share.getId())
+                        .userId(userId)
+                        .build()
+                );
+                if (midUserShare == null) {
+                    share.setDownloadUrl(null);
+                }
+            }).collect(Collectors.toList());
+        }
+        return new PageInfo<Share>(sharesDeal);
     }
 
     public Share exchangeById(Integer id, HttpServletRequest request) {
         Object userId = request.getAttribute("id");
-        Integer integerUserId = Integer.valueOf((String) userId);
+        Integer integerUserId = (Integer) userId;
         //1.根据ID查询share
         Share share = this.shareMapper.selectByPrimaryKey(id);
         if (share == null) {

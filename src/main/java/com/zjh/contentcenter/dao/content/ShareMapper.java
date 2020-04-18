@@ -12,6 +12,7 @@ import java.util.List;
 public interface ShareMapper extends Mapper<Share> {
     /**
      * 通过title查询
+     *
      * @param title
      * @return
      */

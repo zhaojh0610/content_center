@@ -26,7 +26,7 @@ public class TestRestTemplateTokenRelayInterceptor implements ClientHttpRequestI
         HttpServletRequest httpRequest = servletRequestAttributes.getRequest();
         String token = httpRequest.getHeader("X-Token");
         HttpHeaders headers = new HttpHeaders();
-        headers.add("X-Token",token);
+        headers.add("X-Token", token);
         //保证请求继续执行
         return execution.execute(request, body);
     }

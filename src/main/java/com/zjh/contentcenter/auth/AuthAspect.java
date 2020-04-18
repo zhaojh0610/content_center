@@ -70,7 +70,7 @@ public class AuthAspect {
             //2.验证用户角色是否匹配
             HttpServletRequest request = getHttpServletRequest();
             String role = (String) request.getAttribute("role");
-            MethodSignature signature = (MethodSignature) point.getSignature() ;
+            MethodSignature signature = (MethodSignature) point.getSignature();
             Method method = signature.getMethod();
             CheckAuthorization annotation = method.getAnnotation(CheckAuthorization.class);
             String value = annotation.value();
