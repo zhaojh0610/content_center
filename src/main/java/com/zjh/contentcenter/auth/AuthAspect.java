@@ -59,6 +59,7 @@ public class AuthAspect {
     private HttpServletRequest getHttpServletRequest() {
         RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
         ServletRequestAttributes attributes = (ServletRequestAttributes) requestAttributes;
+        assert attributes != null;
         return attributes.getRequest();
     }
 
